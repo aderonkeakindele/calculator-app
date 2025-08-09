@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Calculator</title>
+    <style>
+    body {
+    margin: 0;
+    font-family: 'Arial', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f0e6d2; /* Light beige/yellowish background */
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.calculator {
+    background-color: #f8f0e5; /* Slightly lighter background for the calculator */
+    border-radius: 15px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.display {
+background-color: #ffffff;
+    border-radius: 10px;
+    padding: 20px;
+    height: 100px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-end;
+    overflow: hidden;
+    word-wrap: break-word;
+    word-break: break-all;
+}
+
+.current-operation {
+    font-size: 1.2em;
+    color: #888;
+    min-height: 1.2em; /* Ensure space even when empty */
+}
+.output {
+    font-size: 2.5em;
+    font-weight: bold;
+    color: #333;
+}
+
+.buttons {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+}
+
+.button {
+    border: none;
+    border-radius: 10px;
+    padding: 20px 0;
+    font-size: 1.5em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    color: white;
+}
+/* Number buttons, AC, Del, and decimal */
+.button.number,
+.button.clear,
+.button.delete {
+    background-color: #e08a7a; /* Reddish-orange */
+}
+
+.button.number:hover,
+.button.clear:hover,
+.button.delete:hover {
+    background-color: #d07a6a;
+    transform: translateY(-2px);
+}
+
+/* Operator buttons */
+.button.operator {
+    background-color: #a8d8e0; /* Light blue */
+}
+
+.button.operator:hover {
+    background-color: #98c8d0;
+    transform: translateY(-2px);
+}
+
+/* Equals button */
+.button.equals {
+    grid-column: span 2; /* Spans two columns */
+    background-color: #3a60a0; /* Darker blue */
+}
+
+.button.equals:hover {
+    background-color: #2a5090;
+    transform: translateY(-2px);
+}
+
+.empty-button {
+    /* This div takes the place of the missing button in the grid */
+    visibility: hidden; /* Make it invisible but still occupy space */
+}
+/* Media Queries for Responsiveness */
+@media (max-width: 600px) {
+    .calculator {
+        padding: 15px;
+        gap: 10px;
+    }
+
+    .display {
+        height: 80px;
+        padding: 15px;
+    }
+
+    .current-operation {
+        font-size: 1em;
+    }
+
+    .output {
+        font-size: 2em;
+    }
+
+    .buttons {
+        gap: 8px;
+    }
+.button {
+        padding: 15px 0;
+        font-size: 1.2em;
+    }
+}
+
+@media (max-width: 400px) {
+    .calculator {
+        padding: 10px;
+        border-radius: 10px;
+    }
+
+    .display {
+        height: 70px;
+        padding: 10px;
+    }
+
+    .current-operation {
+        font-size: 0.9em;
+    }
+
+.output {
+        font-size: 1.8em;
+    }
+
+    .buttons {
+        gap: 6px;
+    }
+
+    .button {
+        padding: 12px 0;
+        font-size: 1.1em;
+        border-radius: 8px;
+    }
+}
+
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="display">
+            <div class="current-operation" data-current-operation></div>
+            <div class="output" data-output>0</div>
+</div>
+        <div class="buttons">
+            <button class="button number" data-number>7</button>
+            <button class="button number" data-number>8</button>
+            <button class="button number" data-number>9</button>
+            <button class="button clear" data-clear>AC</button>
+            <button class="button operator" data-operator>/</button>
+
+            <button class="button number" data-number>4</button>
+            <button class="button number" data-number>5</button>
+            <button class="button number" data-number>6</button>
+            <button class="button delete" data-delete>Del</button>
+            <button class="button operator" data-operator>*</button>
+
+            <button class="button number" data-number>1</button>
+            <button class="button number" data-number>2</button>
+            <button class="button number" data-number>3</button>
+            <button class="button operator" data-percent>%</button>
+            <button class="button operator" data-operator>-</button>
+            <button class="button number" data-number>0</button>
+ 
+            <button class="button number" data-number>.</button>
+            <div class="empty-button"></div> <!-- Placeholder for the empty spot -->
+            <button class="button operator" data-operator>+</button>
+            <button class="button equals" data-equals>=</button>
+        </div>
+    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+    const outputDisplay = document.querySelector('[data-output]');
+    const currentOperationDisplay = document.querySelector('[data-current-operation]');
+    const numberButtons = document.querySelectorAll('[data-number]');
+    const operatorButtons = document.querySelectorAll('[data-operator]');
+    const equalsButton = document.querySelector('[data-equals]');
+    const clearButton = document.querySelector('[data-clear]');
+    const deleteButton = document.querySelector('[data-delete]');
+    const percentButton = document.querySelector('[data-percent]');
+ let currentOperand = '';
+    let previousOperand = '';
+    let operation = undefined;
+    let isResultDisplayed = false;
+
+    function updateDisplay() {
+        outputDisplay.innerText = currentOperand === '' ? '0' : currentOperand;
+        if (operation != null) {
+            currentOperationDisplay.innerText = ${previousOperand} ${operation};
+        } else {
+            currentOperationDisplay.innerText = '';
+        }
+    }
+
+    function clear() {
+        currentOperand = '';
+        previousOperand = '';
+        operation = undefined;
+        isResultDisplayed = false;
+        updateDisplay();
+    }
+function appendNumber(number) {
+        if (isResultDisplayed && operation === undefined) {
+            currentOperand = number;
+            isResultDisplayed = false;
+        } else {
+            if (number === '.' && currentOperand.includes('.')) return;
+            currentOperand = currentOperand.toString() + number.toString();
+        }
+        updateDisplay();
+    }
+
+    function chooseOperation(selectedOperation) {
+        if (currentOperand === '') return;
+        if (previousOperand !== '') {
+            compute();
+        }
+        operation = selectedOperation;
+        previousOperand = currentOperand;
+        currentOperand = '';
+        isResultDisplayed = true; // Next number input will clear currentOperand
+        updateDisplay();
+    }
+function compute() {
+        let computation;
+        const prev = parseFloat(previousOperand);
+        const current = parseFloat(currentOperand);
+        if (isNaN(prev) || isNaN(current)) return;
+
+        switch (operation) {
+            case '+':
+                computation = prev + current;
+                break;
+            case '-':
+                computation = prev - current;
+                break;
+            case '*':
+                computation = prev * current;
+                break;
+            case '/':
+                computation = prev / current;
+                break;
+            default:
+                return;
+        }
+        currentOperand = computation.toString();
+        operation = undefined;
+        previousOperand = '';
+ isResultDisplayed = true;
+        updateDisplay();
+    }
+
+    function deleteLast() {
+        currentOperand = currentOperand.toString().slice(0, -1);
+        if (currentOperand === '') {
+            currentOperand = '0';
+        }
+        updateDisplay();
+    }
+
+    function calculatePercentage() {
+        if (currentOperand === '') return;
+        const num = parseFloat(currentOperand);
+        if (isNaN(num)) return;
+        currentOperand = (num / 100).toString();
+        isResultDisplayed = true;
+        updateDisplay();
+    }
+// Event Listeners
+    numberButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            appendNumber(button.innerText);
+        });
+    });
+
+    operatorButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            chooseOperation(button.innerText);
+        });
+    });
+
+    equalsButton.addEventListener('click', () => {
+        compute();
+    });
+
+    clearButton.addEventListener('click', () => {
+        clear();
+    });
+
+    deleteButton.addEventListener('click', () => {
+        deleteLast();
+    });
+ percentButton.addEventListener('click', () => {
+        calculatePercentage();
+    });
+
+    // Initialize display
+    clear();
+});
+
+    </script>
+</body>
+</html>
